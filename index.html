@@ -122,7 +122,9 @@
             </div>
             <div id="hh-tray-error" class="hh-tray-error"></div>
           </div>
-          <div class="poke-grid" id="poke-grid"></div>
+          <div class="grid-scroll">
+            <div class="poke-grid" id="poke-grid"></div>
+          </div>
         </div>
       </div>
 
@@ -142,7 +144,9 @@
               <button class="hh-sort-btn"        id="hh-sort-loc" onclick="app.setHHSort('loc')">Location</button>
             </div>
           </div>
-          <div class="hh-grid" id="hh-grid"></div>
+          <div class="grid-scroll">
+            <div class="hh-grid" id="hh-grid"></div>
+          </div>
         </div>
       </div>
 
@@ -174,8 +178,10 @@
             <button id="hab-clear-filter" class="btn-clear-filter" onclick="app.clearHabFilters()" style="display:none;">✕ Clear</button>
             <div class="count-badge" id="hab-grid-count"></div>
           </div>
-          <div class="hab-grid" id="hab-grid"></div>
-          <div id="hab-search-poke-panel" style="display:none;margin-top:16px;padding-top:12px;border-top:2px solid var(--border);"></div>
+          <div class="grid-scroll">
+            <div class="hab-grid" id="hab-grid"></div>
+            <div id="hab-search-poke-panel" style="display:none;margin-top:16px;padding-top:12px;border-top:2px solid var(--border);"></div>
+          </div>
         </div>
       </div>
 

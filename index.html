@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokopia Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-ball"></div>
+    <h1>Pokopia Tracker</h1>
+  </div>
+
+  <!-- TAB STRIP -->
+  <div class="tabs">
+    <div class="tab active" data-tab="4" onclick="app.switchTab(4)">Dashboard</div>
+    <div class="tab"        data-tab="0" onclick="app.switchTab(0)">Pokédex</div>
+    <div class="tab"        data-tab="3" onclick="app.switchTab(3)">Habitats</div>
+    <div class="tab"        data-tab="1" onclick="app.switchTab(1)">Households</div>
+    <div class="tab"        data-tab="2" onclick="app.switchTab(2)">Locations</div>
+    <button class="tab-howto-btn" onclick="app.openHowToModal()">ⓘ How to Use</button>
+    <div class="tab-strip-right">
+      <span class="trainer-display" id="trainer-display"></span>
+      <span class="reg-count" id="registered-count">0 Registered</span>
+    </div>
+  </div>
+
+  <!-- MAIN LAYOUT: fixed left panel + tab content on right -->
+  <div class="main-layout">
+
+    <!-- ═══ LEFT PANEL ═══ -->
+    <div class="left-panel">
+
+      <!-- DASHBOARD section (tab-4) -->
+      <div class="left-section" id="left-dash">
+        <div class="left-section-inner dash-welcome-card">
+          <div id="left-panel-welcome"></div>
+        </div>
+        <div class="dash-actions">
+          <button class="btn-how-to-use" onclick="app.openHowToModal()">ⓘ How to Use</button>
+          <button class="btn-export"     onclick="app.exportState()">&#8595; Export Backup</button>
+          <label class="btn-import-label">
+            &#8593; Import Backup
+            <input type="file" accept=".json" style="display:none;" onchange="app.importState(this.files[0]);this.value='';">
+          </label>
+          <span id="import-status"></span>
+          <button class="btn-reset-tracker" onclick="app.openResetModal()">&#9888; Reset Tracker</button>
+        </div>
+        <div class="dash-credits">
+          <strong>Pokopia Tracker</strong><br><br>
+          Pokémon data courtesy of <strong><a href="https://www.serebii.net">Serebii.net</a></strong><br>
+          Developed by <strong><a href="https://www.aandeloucas.com">AANDeloucas</a></strong><br>
+          Donations accepted via <strong><a href="https://ko-fi.com/aandeloucas">ko-fi</a>!</strong>
+        </div>
+      </div>
+
+      <!-- SHARED DETAIL CARD (tabs 0, 1, 3 — Pokédex, Households, Habitats) -->
+      <!-- Single card element. Tabs write their content here; the card never moves. -->
+      <div class="left-section" id="left-detail" style="display:none;padding:10px;">
+        <div class="detail-card" id="shared-detail-card">
+          <div class="detail-card-empty">
+            <div class="empty-pokeball"></div>
+            <p>Select a card from Pokédex, Habitats, or Households to see details and edit information.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOCATIONS section (tab-2) -->
+      <div class="left-section" id="left-loc" style="display:none;padding:0;overflow:hidden;">
+        <div class="loc-sidebar" id="loc-sidebar"></div>
+        <div class="dash-credits dash-credits-compact">
+          <strong>Pokopia Tracker</strong><br><br>
+          Pokémon data courtesy of <strong><a href="https://www.serebii.net">Serebii.net</a></strong><br>
+          Developed by <strong><a href="https://www.aandeloucas.com">AANDeloucas</a></strong><br>
+          Donations accepted via <strong><a href="https://ko-fi.com/aandeloucas">ko-fi</a>!</strong>
+        </div>
+      </div>
+
+    </div><!-- end left-panel -->
+
+    <!-- ═══ RIGHT CONTENT ═══ -->
+    <div class="right-content">
+
+      <!-- TAB: POKÉDEX -->
+      <div class="tab-panel" id="tab-0">
+        <div class="grid-band">
+          <div class="grid-toolbar">
+            <div class="search-box">
+              <span>&#128269;</span>
+              <input type="text" id="poke-search" placeholder="Search Pokémon..." oninput="app.filterPokemon()">
+            </div>
+            <select class="filter-select" id="filter-acquired" onchange="app.filterPokemon()">
+              <option value="all">All Pokémon</option>
+              <option value="acquired">Acquired</option>
+              <option value="missing">Not Acquired</option>
+              <option value="unhoused">Acquired, No Household</option>
+            </select>
+            <select class="filter-select" id="filter-loc"  onchange="app.filterPokemon()"></select>
+            <select class="filter-select" id="filter-spec" onchange="app.filterPokemon()"></select>
+            <select class="filter-select" id="filter-hab"  onchange="app.filterPokemon()"></select>
+            <button id="poke-clear-filter" class="btn-clear-filter" onclick="app.clearPokeFilters()" style="display:none;">✕ Clear</button>
+          </div>
+          <div class="grid-toolbar2">
+            <button id="btn-form-hh" class="btn-form-hh" onclick="app.toggleHHSelectMode()">&#127968; Form Household</button>
+            <div class="count-badge" id="grid-count"></div>
+          </div>
+          <div id="hh-select-tray" style="display:none;" class="hh-select-tray">
+            <div class="hh-select-tray-inner">
+              <div class="hh-tray-left">
+                <span class="hh-tray-label">Select 1–4 acquired Pokémon to group into a household</span>
+                <div class="hh-tray-chips" id="hh-tray-chips"></div>
+              </div>
+              <div class="hh-tray-actions">
+                <button class="btn-tray-create" id="btn-tray-create" onclick="app.openHHFormModal()" disabled>Create Household →</button>
+                <button class="btn-tray-cancel" onclick="app.exitHHSelectMode()">✕ Cancel</button>
+              </div>
+            </div>
+            <div id="hh-tray-error" class="hh-tray-error"></div>
+          </div>
+          <div class="poke-grid" id="poke-grid"></div>
+        </div>
+      </div>
+
+      <!-- TAB: HOUSEHOLDS -->
+      <div class="tab-panel" id="tab-1">
+        <div class="hh-grid-band">
+          <div class="hh-toolbar">
+            <button class="btn-add-hh" onclick="app.addHouseholdFromUI()">+ Add Household</button>
+            <div class="search-box" style="min-width:120px;max-width:180px;">
+              <span>&#128269;</span>
+              <input type="text" id="hh-search" placeholder="Search..." oninput="app.renderHH()">
+            </div>
+            <select class="filter-select" id="filter-hh-loc" onchange="app.renderHH()"></select>
+            <div class="hh-sort-group">
+              <button class="hh-sort-btn active" id="hh-sort-az"  onclick="app.setHHSort('az')">A–Z</button>
+              <button class="hh-sort-btn"        id="hh-sort-za"  onclick="app.setHHSort('za')">Z–A</button>
+              <button class="hh-sort-btn"        id="hh-sort-loc" onclick="app.setHHSort('loc')">Location</button>
+            </div>
+          </div>
+          <div class="hh-grid" id="hh-grid"></div>
+        </div>
+      </div>
+
+      <!-- TAB: LOCATIONS -->
+      <div class="tab-panel" id="tab-2">
+        <div class="loc-right">
+          <div class="loc-right-header">
+            <h2 id="loc-right-name">Withered Wastelands</h2>
+            <p id="loc-right-meta"></p>
+          </div>
+          <div class="spec-tab-bar">
+            <button class="spec-tab-btn active" id="spec-tab-current" onclick="app.switchSpecTab('current')">Currently available</button>
+            <button class="spec-tab-btn"        id="spec-tab-planned" onclick="app.switchSpecTab('planned')">Planned Organization</button>
+          </div>
+          <div class="loc-spec-content" id="loc-spec-content"></div>
+        </div>
+      </div>
+
+      <!-- TAB: HABITATS -->
+      <div class="tab-panel" id="tab-3">
+        <div class="grid-band">
+          <div class="grid-toolbar">
+            <div class="search-box">
+              <span>&#128269;</span>
+              <input type="text" id="hab-search" placeholder="Search habitats..." oninput="app.filterHabitats()">
+            </div>
+            <select class="filter-select" id="filter-hab-loc"   onchange="app.filterHabitats()"></select>
+            <select class="filter-select" id="filter-hab-ideal" onchange="app.filterHabitats()"></select>
+            <button id="hab-clear-filter" class="btn-clear-filter" onclick="app.clearHabFilters()" style="display:none;">✕ Clear</button>
+            <div class="count-badge" id="hab-grid-count"></div>
+          </div>
+          <div class="hab-grid" id="hab-grid"></div>
+          <div id="hab-search-poke-panel" style="display:none;margin-top:16px;padding-top:12px;border-top:2px solid var(--border);"></div>
+        </div>
+      </div>
+
+      <!-- TAB: DASHBOARD -->
+      <div class="tab-panel active" id="tab-4">
+        <div class="dash-right">
+          <div class="dash-section">
+            <div class="dash-section-meta">
+              <div class="dash-label-group">
+                <div class="dash-label">Pokédex</div>
+                <div class="dash-count" id="dash-poke-count">0 acquired</div>
+              </div>
+              <div class="search-box dash-search-box">
+                <span>&#128269;</span>
+                <input type="text" id="dash-poke-search" placeholder="Search Pokémon..." oninput="app.filterDashPoke()">
+              </div>
+            </div>
+            <div class="dash-card-row" id="dash-poke-row" onwheel="event.preventDefault();this.scrollLeft+=event.deltaY*1.5"></div>
+          </div>
+          <div class="dash-section">
+            <div class="dash-section-meta">
+              <div class="dash-label-group">
+                <div class="dash-label">Habitats</div>
+                <div class="dash-count" id="dash-hab-count">0 completed</div>
+              </div>
+              <div class="search-box dash-search-box">
+                <span>&#128269;</span>
+                <input type="text" id="dash-hab-search" placeholder="Search Habitats..." oninput="app.filterDashHab()">
+              </div>
+            </div>
+            <div class="dash-card-row" id="dash-hab-row" onwheel="event.preventDefault();this.scrollLeft+=event.deltaY*1.5"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end right-content -->
+  </div><!-- end main-layout -->
+</div><!-- end app -->
+
+<!-- HH FORMATION MODAL -->
+<div class="modal-overlay" id="hh-form-modal" style="display:none;" onclick="if(event.target===this)app.closeHHFormModal()">
+  <div class="modal-box hh-form-box">
+    <h3>Form a New Household</h3>
+    <div class="hh-form-preview" id="hh-form-preview"></div>
+    <div id="hh-form-hab-info" class="hh-form-hab-info" style="display:none;"></div>
+    <div class="hh-form-warning" id="hh-form-warning" style="display:none;"></div>
+    <input type="text" class="modal-search-input" id="hh-form-name" placeholder="Household name..." style="margin-top:4px;" onkeydown="if(event.key==='Enter')app.saveHHFromSelection()">
+    <select class="type-select" id="hh-form-type" onchange="app.updateHHFormWarning()" style="width:100%;margin-bottom:8px;"></select>
+    <select class="loc-select" id="hh-form-loc" style="width:100%;margin-bottom:12px;"></select>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-add-hh" style="flex:1;border-radius:10px;" onclick="app.saveHHFromSelection()">Save Household</button>
+      <button class="modal-cancel" style="flex:0 0 auto;width:auto;padding:7px 14px;margin-top:0;" onclick="app.closeHHFormModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- MEMBER PICKER MODAL -->
+<div class="modal-overlay" id="poke-modal" style="display:none;" onclick="if(event.target===this)app.closeMemberModal()">
+  <div class="modal-box">
+    <h3>Add Pokémon</h3>
+    <input type="text" class="modal-search-input" id="modal-search" placeholder="Search acquired Pokémon..." oninput="app.filterMemberModal()">
+    <div class="modal-results" id="modal-results"></div>
+    <button class="modal-cancel" onclick="app.closeMemberModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- HABITAT CONFIRM MODAL -->
+<div id="hab-confirm-modal" class="modal-overlay-base" style="display:none;">
+  <div style="background:var(--panel);border-radius:var(--radius);padding:24px 28px;max-width:400px;width:90%;position:relative;">
+    <button onclick="app.habConfirmNo()" style="position:absolute;top:12px;right:12px;background:var(--border);border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px;">&#10005;</button>
+    <h3 style="font-family:'Nunito',sans-serif;font-weight:800;font-size:17px;margin-bottom:10px;">Have you acquired all the following Pokémon?</h3>
+    <div id="hab-confirm-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;max-height:200px;overflow-y:auto;"></div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="app.habConfirmYes()" style="flex:1;background:#4a7c59;color:white;border:none;border-radius:8px;padding:10px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;cursor:pointer;">Yes — mark all acquired</button>
+      <button onclick="app.habConfirmNo()"  style="flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;cursor:pointer;">No</button>
+    </div>
+  </div>
+</div>
+
+<!-- HOW TO USE -->
+<div id="how-to-modal" class="modal-overlay-base" style="display:none;">
+  <div class="howto-window">
+    <div class="howto-header">
+      <div class="howto-header-ball"></div>
+      <span class="howto-header-title">How to Use the Pokopia Tracker</span>
+      <button class="howto-close" onclick="app.closeHowToModal()">&#10005;</button>
+    </div>
+    <div class="howto-tabs">
+      <div class="howto-tab active" onclick="app.switchHowToTab(0)">Dashboard</div>
+      <div class="howto-tab"        onclick="app.switchHowToTab(1)">Pokédex</div>
+      <div class="howto-tab"        onclick="app.switchHowToTab(2)">Habitats</div>
+      <div class="howto-tab"        onclick="app.switchHowToTab(3)">Households</div>
+      <div class="howto-tab"        onclick="app.switchHowToTab(4)">Locations</div>
+    </div>
+    <div class="howto-body">
+      <div class="howto-panel active" id="howto-0">
+        <div class="howto-section-icon">📊</div>
+        <h3 class="howto-section-title">Dashboard</h3>
+        <p class="howto-text"><u><strong>The left panel</strong></u> establishes your trainer profile, provides back-up and reset options for your data, and displays the app's credits.</p> 
+        <p class="howto-text">Click through other tabs to the right of 'Dashboard' to access other parts of the app.</p>
+        <p class="howto-text"><u><strong>The right panel</strong></u> provides a searchable viewer of your Pokédex and Habitat completion.</p> 
+        <p class="howto-text">Click any card to jump to see that pokémon or habitat's details.</p>
+        <div class="howto-rule"></div>
+        <p class="howto-text"><u><strong>Trainer name</strong></u> (optional) is saved with your data.</p>
+        <p class="howto-text"><u><strong>Export &amp; Import Backup </strong></u> downloads / uploads your saved data as a JSON file.</p>
+        <p class="howto-text"><u><strong>Reset Tracker</strong></u> erases all data.</p>
+      </div>
+      <div class="howto-panel" id="howto-1">
+        <div class="howto-section-icon">📖</div>
+        <h3 class="howto-section-title">Pokédex</h3>
+        <p class="howto-text"><u><strong>The left panel</strong></u> displays a detailed, editable card view for each Pokémon when selected.<br>
+        • <u>Status</u> is whether the Pokémon is acquired.<br>
+        • <u>Location</u> is where the Pokémon is located.<br>
+        • <u>Planned</u> is where the Pokémon is to be located based on household location (if different).<br>
+        • <u>Pref. Loc.</u> is the canonical location for that Pokémon based on Habitat preferences.<br>
+        • <u>Ideal Hab.</u> is the preferred habitat type for that Pokémon.<br>
+        • <u>Abilities</u> are what the Pokémon can do.<br>
+        • <u>Habitats</u> are where that Pokémon can be acquired.<br>
+        • <u>Navigation</u> buttons at the bottom are cycle through the right panel's filtered content.<br></p>
+        <p class="howto-text"><u><strong>The right panel</strong></u> provides a searchable viewer of your Pokédex.<br>Click any card to see its detail in the left panel.<br>
+        • <u>Search and filter</u> to find Pokémon based on <strong>Location, Specialties, and Ideal Habitats</strong>. <br>
+        • <u>Form Household</u> lets you group acquired Pokémon into households.</p>
+        <div class="howto-rule"></div>
+        <p class="howto-text"><u><strong>Acquiring Pokémon</strong></u> — Click the ✓ ring to toggle acquisition.<br>
+        Alternatively, use the button associated with the Pokémon's status in the detail view.</p>
+        <p class="howto-text"><u><strong>Placing Pokémon</strong></u> — When acquired, Pokémon can be placed in a location. <br>
+        Location badges will appear on acquired cards: click to set that Pokémon's current location.<br>
+        Alternatively, use the drop-down menu associated with the Pokémon's location in the detail view.</p>
+        <p class="howto-text"><u><strong>🏠 Form Household</strong></u> groups up to 4 acquired Pokémon, depending on house type.</p>
+      </div>
+      <div class="howto-panel" id="howto-2">
+        <div class="howto-section-icon">🌿</div>
+        <h3 class="howto-section-title">Habitats</h3>
+        <p class="howto-text"><u><strong>The left panel</strong></u> displays a detailed, editable card view for each habitat when selected.<br>
+        • <u>Description</u> is flavor text.<br>
+        • <u>Pref. Location</u> is the canonical location for that habitat based on soil or flora requirements.<br>
+        • <u>Attracts</u> shows which Pokémon are drawn to this habitat.<br>
+        • <u>Navigation</u> buttons at the bottom are cycle through the right panel's filtered content.<br></p>
+        <p class="howto-text"><u><strong>The right panel</strong></u> provides a searchable viewer of all habitats. Filter by location or ideal habitat type to narrow down results. Click any card to see its detail in the left panel. <br>
+        <div class="howto-rule"></div>
+        <p class="howto-text">When you click the "Mark as Complete" button in detail view or the circle on the habitat card, all associated Pokémon will be marked as acquired. <strong>This is irreversible, so use with caution!</strong></p>
+        <p class="howto-text">Pokémon tags in detail view will change colors depending on their location.</p>
+        <p class="howto-text">When all Pokémon are acquired, the habitat will be considered complete.</p>
+        <p class="howto-text">Habitat states are:<br></p>
+        <div class="howto-types">
+          <div class="howto-type-row"><span class="howto-type-label">Faded</span><span class="howto-type-desc">No Pokémon acquired associated with that habitat.</span></div>
+          <div class="howto-type-row"><span class="howto-type-label">Full color</span><span class="howto-type-desc">Acquired some Pokémon, but not all.</span></div>
+          <div class="howto-type-row"><span class="howto-type-label">Green ✓</span><span class="howto-type-desc">Acquired all associated Pokémon</span></div>
+        </div>
+      </div>
+      <div class="howto-panel" id="howto-3">
+        <div class="howto-section-icon">🏠</div>
+        <h3 class="howto-section-title">Households</h3>
+        <p class="howto-text"><u><strong>The left panel</strong></u> displays a detailed, editable card view for each household when selected. This is where you edit information as well.<br>
+        • <u>Name</u> is how to search and identify the household.<br>
+        • <u>Type</u> provides the household's 'house cost' associated with locations (max 40).<br>
+        • <u>Location</u> is where the household is based. Note household member locations can differ!<br>
+        • <u>Navigation</u> buttons at the bottom are cycle through the right panel's filtered content.</p>
+        <p class="howto-text"><u><strong>The right panel</strong></u> provides a searchable viewer. Filter by location or search by name to narrow down results. Click any card to see its detail in the left panel.<br>
+      <div class="howto-rule"></div>
+        <p class="howto-text">When you've acquired pokémon, you can group them into households if they are already not in one. Adding members provides ability and habitat information.</p>
+        <p class="howto-text">When a household location differs from a member's current location, a 'planned location' condition appears. This allows for you to plan where households and their members may be best moved between locations.</p>
+        <p class="howto-text">Household types determine the number of members that can be assigned and the associated costs.</p>
+        <div class="howto-types">
+          <div class="howto-type-row"><span class="howto-type-label">Block Home</span><span class="howto-type-desc">0 slots · any members</span></div>
+          <div class="howto-type-row"><span class="howto-type-label">Singles Prefab</span><span class="howto-type-desc">1 slot · 1 member max</span></div>
+          <div class="howto-type-row"><span class="howto-type-label">Doubles / Quad</span><span class="howto-type-desc">2 slots · up to 4 members</span></div>
+        </div>
+      </div>
+      <div class="howto-panel" id="howto-4">
+        <div class="howto-section-icon">📍</div>
+        <h3 class="howto-section-title">Locations</h3>
+        <p class="howto-text"><u><strong>The left panel</strong></u> provides navigation between location details with immediate view of house slots. Click a location to open its details.</p>
+        <p class="howto-text"><u><strong>The right panel</strong></u> provides an organizational view of households and specialties.</p>
+      <div class="howto-rule"></div>
+        <p class="howto-text">Under a location's name is a count of what specialties and number of pokémon currently there, with a suggested canonical number labeled as 'local'. </p>
+        <p class="howto-text"><u><strong>Currently Available &amp; Planned Organization</strong></u> toggle switches between current and planned location states of pokémon and households. This allows you to plan where to move acquired pokémon and households based on their current location, planned location, and the specialties of the location.</p>
+        <p class="howto-text">Pokémon and households will be catelogued under their specialties to help you see who is currently where, and plan where to move them to best fill location specialties.</p>
+        <p class="howto-text">When under the 'Planned Organization' view, you can see which specialties are missing between your planned organization and the location's 'local' population.</p>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESET CONFIRM -->
+<div id="reset-confirm-modal" class="reset-modal-overlay" onclick="if(event.target===this)app.closeResetModal()">
+  <div class="reset-modal-box">
+    <div class="reset-modal-icon">&#x26A0;&#xFE0F;</div>
+    <h2 class="reset-modal-title">Reset Tracker?</h2>
+    <p class="reset-modal-body">This will permanently erase all acquired Pokémon, locations, household data, and your trainer name. This cannot be undone.</p>
+    <div class="reset-modal-actions">
+      <button class="reset-modal-btn confirm" onclick="app.confirmReset()">&#10005; Yes, Reset</button>
+      <button class="reset-modal-btn cancel"  onclick="app.closeResetModal()">&#8617; Take Me Back</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/n3/browser/n3.min.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
+

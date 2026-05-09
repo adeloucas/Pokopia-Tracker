@@ -47,6 +47,12 @@ function boot() {
   initStore(window.N3);
   loadUserState();
 
+  // Show mobile warning if on a phone-sized screen
+  if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 768) {
+    const mw = document.getElementById("mobile-warning-modal");
+    if (mw) mw.style.display = "flex";
+  }
+
   // 2. Populate every filter <select> from data.
   populateAllFilterOptions();
 

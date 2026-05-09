@@ -12,7 +12,7 @@
   --loc-rr:#b84040;  --loc-rr-bg:#fdf0f0;
   --loc-ss:#c9941a;  --loc-ss-bg:#fdf7ed;
   --loc-pt:#7a4faf;  --loc-pt-bg:#f5f0fc;
-   --loc-none:#a0a0a0; --loc-none-bg:#f5f5f5;
+  --loc-none:#a0a0a0; --loc-none-bg:#f5f5f5;
   --loc-hhs:#0e9e8e;  --loc-hhs-bg:#01443c22;
 }
 * { box-sizing:border-box; margin:0; padding:0; }

@@ -12,6 +12,8 @@
   --loc-rr:#b84040;  --loc-rr-bg:#fdf0f0;
   --loc-ss:#c9941a;  --loc-ss-bg:#fdf7ed;
   --loc-pt:#7a4faf;  --loc-pt-bg:#f5f0fc;
+   --loc-none:#a0a0a0; --loc-none-bg:#f5f5f5;
+  --loc-hhs:#0e9e8e;  --loc-hhs-bg:#01443c22;
 }
 * { box-sizing:border-box; margin:0; padding:0; }
 body { font-family:'Nunito Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
@@ -43,10 +45,13 @@ h1,h2,h3 { font-family:'Nunito',sans-serif; }
 .dash-right { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:14px; min-width:0; }
 
 /* Households grid band */
-.hh-grid-band { flex:1; overflow-y:auto; padding:10px 14px; min-height:0; }
+.hh-grid-band { flex:1; display:flex; flex-direction:column; padding:10px 14px; min-height:0; overflow:hidden; }
 
 /* Grid band for Pokédex and Habitats */
-.grid-band { flex:1; overflow-y:auto; padding:10px 14px; min-height:0; }
+.grid-band { flex:1; display:flex; flex-direction:column; padding:10px 14px; min-height:0; overflow:hidden; }
+
+/* Scrollable card window inside grid/hh bands — toolbars above stay static */
+.grid-scroll { flex:1; overflow-y:auto; min-height:0; }
 
 .header { background:var(--accent); padding:0 20px; display:flex; align-items:center; gap:16px; box-shadow:0 2px 8px rgba(232,71,74,0.3); z-index:10; flex-shrink:0; height:56px; }
 .header-ball { width:32px; height:32px; border-radius:50%; background:white; border:3px solid rgba(255,255,255,0.5); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
@@ -98,9 +103,9 @@ h1,h2,h3 { font-family:'Nunito',sans-serif; }
 .poke-loc-badge { width:20px; height:20px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:7px; font-weight:800; letter-spacing:-0.3px; border:1.5px solid var(--border); background:var(--panel2); color:var(--muted); cursor:pointer; transition:all 0.12s; user-select:none; }
 .poke-loc-badge.active { color:#fff; border-color:transparent; }
 .poke-loc-badge:hover { border-color:var(--accent); }
-.poke-card.selectable { /* no border for unacquired selectable — border added only when acquired */ }
-.poke-card.acquired.selectable { outline:1px dashed var(--muted); outline-offset:2px; }
-.poke-card.hh-selected { outline:none; border:2px solid var(--loc-rr)!important; background:#fff5f5!important; }
+/* When a card is selectable, only acquired ones show an outline */
+.poke-card.acquired.selectable { outline: 1px dashed var(--muted); outline-offset:1px; }
+.poke-card.hh-selected { outline:2px solid var(--loc-hhs)!important; outline-offset:1px!important; border:2px solid var(--loc-hhs)!important; background:var(--loc-hhs-bg)!important; box-shadow:0 0 0 6px var(--loc-hhs-bg), 0 0 12px 4px var(--loc-hhs)88!important; }
 .hab-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(106px,1fr)); gap:7px; }
 .hab-card { background:var(--panel); border-radius:var(--radius-sm); border:2px solid var(--border); padding:6px 6px 8px; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; transition:all 0.15s; position:relative; }
 .hab-card:hover { border-color:var(--accent); transform:translateY(-1px); box-shadow:0 3px 12px rgba(0,0,0,0.1); }
